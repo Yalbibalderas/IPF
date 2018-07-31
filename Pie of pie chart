@@ -1,0 +1,72 @@
+# Pie of pie chart
+# Author: Yalbi Balderas
+
+# Uno de los problemas de representar gráficas de pay es que no son tan buenas para representar datos 
+# como lo son otro tipo de gráficos e.g. barras, sin embargo en términos de visualización de datos, 
+# y conociendo cuándo no es tan malo utilizarlos, es posible que un pay pueda representar mejor lo que se desea transmitir. 
+
+# En este caso me solicitaron que realizara uno de estos gráficos y lo único que encontré fue un post en stackoverflow
+# https://stackoverflow.com/questions/26576906/is-it-possible-to-create-a-pie-in-pie-chart-in-spss-or-r
+# Pero no venía el código, solo los pasos a seguir. 
+
+# Entonces aquí pongo un ejemplo resuelto,
+
+# Load libraries ----
+
+library(ggplot2)
+library(RColorBrewer)
+library(cowplot)
+library(gridGraphics)
+
+# Some data
+exampledata <- data.frame(group = c("Class1", "Class2", "Class3"), value = c(1296, 42, 800))
+exampledata2 <- data.frame(group2 = c("Subclass1", "Subclass2"), value2 = c(22,20))
+
+# Defining a theme 
+# https://stackoverflow.com/questions/47752037/pie-chart-with-ggplot2-with-specific-order-and-percentage-annotations
+blank_theme <- theme_classic() +
+  theme(
+    plot.title = element_text(size=14, face="bold"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank(),
+    axis.text.x = element_blank(),
+    panel.border = element_blank(),
+    panel.grid = element_blank(),
+    legend.position ="bottom",
+    legend.title = element_blank(),
+    legend.text = element_text(size=20, face="bold")
+  )
+
+# First pie
+pie1 <- ggplot(exampledata, aes(x="", y=value, fill=group)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=5.45) +
+  scale_fill_manual(values=c("#636363","#ff0000", "#bdbdbd")) +
+  geom_bar(width=1, size=1, color="white", stat= "identity") +
+  blank_theme 
+
+# Second pie
+pie2 <- ggplot(exampledata2, aes(x="", y=value2, fill=group2)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=6.2) +
+  scale_fill_manual(values=c("#ffcccc","#ff4d4d")) +
+  geom_bar(width=1, size=1, color="white", stat= "identity") +
+  blank_theme 
+   #+ theme(legend.position="none")
+
+# To draw lines for connecting pies
+par(bg=NA)
+
+frame <- plot(NA, xlim=c(0,1000), ylim=c(0,1000), xaxt='n', yaxt='n', ann=F, frame.plot=F)
+dfp <- data.frame(x1=c(220,220), y1=c(510,570), x2=c(500,500), y2=c(330,750))
+segments(dfp$x1, dfp$y1, dfp$x2, dfp$y2, col= "black", lwd=1.0)
+grid.echo()
+grid.grab() -> mapgrob
+
+plot_grid(pie1, pie2, ncol=2, rel_widths=c(2.5,1))
+
+# Combine all figures
+pushViewport(viewport(x=.8, y=.5, height=.8, width=.8))
+grid.draw(mapgrob)
